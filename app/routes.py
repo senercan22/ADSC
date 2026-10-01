@@ -77,7 +77,7 @@ def home():
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
-@api_bp.route('/sohbet', methods=['POST', 'OPTIONS'])
+@api_bp.route('/chat', methods=['POST', 'OPTIONS'])
 def sohbet():
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'ok'})
@@ -88,7 +88,8 @@ def sohbet():
 
     try:
         data = request.get_json(silent=True) or {}
-        kullanici_mesaji = (data.get('mesaj') or data.get('message') or '').lower().strip()
+        # Wix tarafında 'message' gönderdiğimiz için ikisini de yakalayacak şekilde ayarlıyoruz
+        kullanici_mesaji = (data.get('message') or data.get('mesaj') or '').lower().strip()
 
         if not kullanici_mesaji:
             return jsonify({'basari': False, 'hata': 'Mesaj boş olamaz'}), 400
@@ -105,7 +106,8 @@ def sohbet():
         else:
             cevap = f"ADSC Temsilcisi: '{kullanici_mesaji}' ile ilgili detaylı bilgiyi ekibimizle görüşerek öğrenebilirsiniz. Size başka nasıl yardımcı olabilirim?"
 
-        response = jsonify({'basari': True, 'cevap': cevap})
+        # Wix tarafı doğrudan data.reply beklediği için her iki formatı da destekleyelim
+        response = jsonify({'basari': True, 'cevap': cevap, 'reply': cevap})
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response, 200
 

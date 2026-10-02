@@ -1,38 +1,54 @@
-
+"""
+Modül A — Yapılandırma
+Tüm ayarlar ve gizli anahtarlar burada toplanır; değerler .env dosyasından okunur.
+"""
 import os
 from dotenv import load_dotenv
 
+# .env dosyasını ortam değişkenlerine yükle (bu satır olmazsa .env okunmaz)
 load_dotenv()
 
+
 class Config:
-    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "varsayilan-gizli-anahtar")
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///smartlead.db")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    # Modül A Gereksinimleri:
-    AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+    # Flask oturum/token imzalama anahtarı
+    SECRET_KEY = os.environ.get("SECRET_KEY", "gelistirme-icin-gizli-anahtar")
 
-    # Dashboard girişi (Render'da ortam değişkeni olarak değiştirilebilir)
-    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
+    # SQLite veritabanı dosyasının yolu
+    DATABASE_URL = os.environ.get("DATABASE_URL", "smartlead.db")
 
-    # Yapay zekanın kişiliğini tanımlayan metin (İşletmenize göre güncelleyebilirsiniz)
-    BUSINESS_CONTEXT = os.getenv(
+    # Yapay zekâ ayarları
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+    AI_PROVIDER = os.environ.get("AI_PROVIDER", "groq")
+
+    # Hangi sitelerin API'ye istek atabileceği (Wix sitesi dahil)
+    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
+
+    # Yönetim paneli girişi (canlıda Render ortam değişkenlerinden değiştirin)
+    ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "1234")
+
+    # Yapay zekânın kişiliği — projeyi kendi işimize uyarladığımız TEK yer
+    BUSINESS_CONTEXT = os.environ.get(
         "BUSINESS_CONTEXT",
-        "Sen SmartLead AI sisteminin kurumsal ve yardımsever müşteri asistanısın. "
-        "Kullanıcılara hizmetlerimiz hakkında net, profesyonel ve Türkçe yanıtlar verirsin."
+        "Sen ADSC Creative reklam ajansının dijital temsilcisisin. "
+        "Ajansın hizmetleri: yaratıcı reklam kampanyaları, marka kimliği tasarımı, "
+        "web geliştirme ve dijital pazarlama. Kısa, samimi ve profesyonel Türkçe yanıtlar ver. "
+        "Bilmediğin konularda uydurma; ziyaretçiyi sayfadaki formdan ad soyad, e-posta "
+        "ve mesajını bırakmaya yönlendir, ekibin kendisine dönüş yapacağını söyle."
     )
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
 
+
 class ProductionConfig(Config):
     DEBUG = False
 
+
+# create_app() bu sözlükten ortamı seçer
 config_by_name = {
     "dev": DevelopmentConfig,
     "prod": ProductionConfig,
-    "default": DevelopmentConfig
+    "default": DevelopmentConfig,
 }

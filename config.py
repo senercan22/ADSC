@@ -13,7 +13,11 @@ class Config:
     # Modül A Gereksinimleri:
     AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
-    
+
+    # Dashboard girişi (Render'da ortam değişkeni olarak değiştirilebilir)
+    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
+
     # Yapay zekanın kişiliğini tanımlayan metin (İşletmenize göre güncelleyebilirsiniz)
     BUSINESS_CONTEXT = os.getenv(
         "BUSINESS_CONTEXT",

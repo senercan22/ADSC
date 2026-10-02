@@ -36,19 +36,18 @@ def giris_gerekli(view):
 @api_bp.route('/feedback', methods=['POST'])
 def feedback_gonder():
     data = request.get_json(silent=True) or {}
-    ad = (data.get('ad') or '').strip()
-    soyad = (data.get('soyad') or '').strip()
+    ad_soyad = (data.get('adSoyad') or '').strip()
     email = (data.get('email') or '').strip()
     mesaj = (data.get('mesaj') or '').strip()
 
-    if not all([ad, soyad, email, mesaj]):
+    if not all([ad_soyad, email, mesaj]):
         return jsonify({'basari': False, 'hata': 'Tüm alanlar zorunludur'}), 400
     if not EMAIL_REGEX.match(email):
         return jsonify({'basari': False, 'hata': 'Geçerli bir e-posta girin'}), 400
-    if len(ad) > 100 or len(soyad) > 100 or len(email) > 200 or len(mesaj) > 2000:
+    if len(ad_soyad) > 150 or len(email) > 200 or len(mesaj) > 2000:
         return jsonify({'basari': False, 'hata': 'Alanlardan biri çok uzun'}), 400
 
-    yeni_id = feedback_ekle(ad, soyad, email, mesaj)
+    yeni_id = feedback_ekle(ad_soyad, email, mesaj)
     return jsonify({'basari': True, 'id': yeni_id}), 201
 
 

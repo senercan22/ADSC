@@ -1,7 +1,80 @@
-from flask import Blueprint, request, jsonify
+import hmac
+import re
+from functools import wraps
+
+from flask import Blueprint, request, jsonify, current_app
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
+from app.database import feedback_ekle, tum_feedbackler
 
 main_bp = Blueprint('main', __name__)
 api_bp = Blueprint('api', __name__)
+
+TOKEN_SURESI = 8 * 60 * 60  # Giriş 8 saat geçerli
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _serializer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="admin-giris")
+
+
+def giris_gerekli(view):
+    """Authorization: Bearer <token> başlığı olmadan veriye erişimi engeller."""
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        auth = request.headers.get("Authorization", "")
+        token = auth[7:] if auth.startswith("Bearer ") else ""
+        try:
+            _serializer().loads(token, max_age=TOKEN_SURESI)
+        except (BadSignature, SignatureExpired):
+            return jsonify({'basari': False, 'hata': 'Giriş gerekli'}), 401
+        return view(*args, **kwargs)
+    return wrapper
+
+
+# ---------- Feedback formu (herkese açık) ----------
+@api_bp.route('/feedback', methods=['POST'])
+def feedback_gonder():
+    data = request.get_json(silent=True) or {}
+    ad = (data.get('ad') or '').strip()
+    soyad = (data.get('soyad') or '').strip()
+    email = (data.get('email') or '').strip()
+    mesaj = (data.get('mesaj') or '').strip()
+
+    if not all([ad, soyad, email, mesaj]):
+        return jsonify({'basari': False, 'hata': 'Tüm alanlar zorunludur'}), 400
+    if not EMAIL_REGEX.match(email):
+        return jsonify({'basari': False, 'hata': 'Geçerli bir e-posta girin'}), 400
+    if len(ad) > 100 or len(soyad) > 100 or len(email) > 200 or len(mesaj) > 2000:
+        return jsonify({'basari': False, 'hata': 'Alanlardan biri çok uzun'}), 400
+
+    yeni_id = feedback_ekle(ad, soyad, email, mesaj)
+    return jsonify({'basari': True, 'id': yeni_id}), 201
+
+
+# ---------- Admin girişi ----------
+@api_bp.route('/login', methods=['POST'])
+def admin_giris():
+    data = request.get_json(silent=True) or {}
+    kullanici = data.get('kullanici') or ''
+    sifre = data.get('sifre') or ''
+
+    dogru = (
+        hmac.compare_digest(kullanici, current_app.config["ADMIN_USERNAME"])
+        and hmac.compare_digest(sifre, current_app.config["ADMIN_PASSWORD"])
+    )
+    if not dogru:
+        return jsonify({'basari': False, 'hata': 'Kullanıcı adı veya şifre hatalı'}), 401
+
+    token = _serializer().dumps({'admin': True})
+    return jsonify({'basari': True, 'token': token}), 200
+
+
+# ---------- Dashboard verisi (giriş gerekli) ----------
+@api_bp.route('/feedbacks', methods=['GET'])
+@giris_gerekli
+def feedback_listesi():
+    return jsonify({'basari': True, 'veriler': tum_feedbackler()}), 200
 
 @main_bp.route('/', methods=['GET'])
 def home():
@@ -49,7 +122,7 @@ def home():
             btn.innerText = "...";
             btn.disabled = true;
             try {
-                const res = await fetch("https://smartlead-ai-l25b.onrender.com/api/sohbet", {
+                const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ mesaj: text })

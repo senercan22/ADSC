@@ -31,7 +31,35 @@ def init_db(app):
                 tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ad TEXT NOT NULL,
+                soyad TEXT NOT NULL,
+                email TEXT NOT NULL,
+                mesaj TEXT NOT NULL,
+                tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         db.commit()
+
+def feedback_ekle(ad, soyad, email, mesaj):
+    """Yeni geri bildirim kaydı ekler."""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO feedback (ad, soyad, email, mesaj) VALUES (?, ?, ?, ?)",
+        (ad, soyad, email, mesaj)
+    )
+    db.commit()
+    return cursor.lastrowid
+
+def tum_feedbackler():
+    """Tüm geri bildirimleri en yeniden eskiye listeler."""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT id, ad, soyad, email, mesaj, tarih FROM feedback ORDER BY id DESC")
+    return [dict(row) for row in cursor.fetchall()]
 
 def lead_ekle(isim, telefon, mesaj=""):
     """Güvenli SQL yer tutucusu (?) kullanarak yeni kayıt ekler."""

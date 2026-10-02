@@ -34,8 +34,7 @@ def init_db(app):
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS feedback (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ad TEXT NOT NULL,
-                soyad TEXT NOT NULL,
+                ad_soyad TEXT NOT NULL,
                 email TEXT NOT NULL,
                 mesaj TEXT NOT NULL,
                 tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -43,13 +42,13 @@ def init_db(app):
         """)
         db.commit()
 
-def feedback_ekle(ad, soyad, email, mesaj):
+def feedback_ekle(ad_soyad, email, mesaj):
     """Yeni geri bildirim kaydı ekler."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT INTO feedback (ad, soyad, email, mesaj) VALUES (?, ?, ?, ?)",
-        (ad, soyad, email, mesaj)
+        "INSERT INTO feedback (ad_soyad, email, mesaj) VALUES (?, ?, ?)",
+        (ad_soyad, email, mesaj)
     )
     db.commit()
     return cursor.lastrowid
@@ -58,7 +57,7 @@ def tum_feedbackler():
     """Tüm geri bildirimleri en yeniden eskiye listeler."""
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT id, ad, soyad, email, mesaj, tarih FROM feedback ORDER BY id DESC")
+    cursor.execute("SELECT id, ad_soyad, email, mesaj, tarih FROM feedback ORDER BY id DESC")
     return [dict(row) for row in cursor.fetchall()]
 
 def lead_ekle(isim, telefon, mesaj=""):

@@ -25,6 +25,14 @@ def init_db(app):
     """'leads' tablosunu yoksa oluşturur."""
     with app.app_context():
         db = get_db()
+
+        # Eski şemadan kalan tablo (telefon sütunlu, email'siz) varsa yedek adla kenara al;
+        # aşağıda yeni yapıda tablo oluşturulur. Böylece eski .db dosyası uygulamayı bozmaz.
+        sutunlar = [satir["name"] for satir in db.execute("PRAGMA table_info(leads)")]
+        if sutunlar and "email" not in sutunlar:
+            db.execute("DROP TABLE IF EXISTS leads_eski")
+            db.execute("ALTER TABLE leads RENAME TO leads_eski")
+
         # Kişiselleştirme: yönergedeki 'telefon' yerine 'email' kullanıyoruz,
         # 'mesaj' ise ziyaretçinin geri bildirimi (feedback).
         db.execute("""

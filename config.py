@@ -20,7 +20,7 @@ class Config:
     # strip(): kopyala-yapıştırda gelen boşluk / tırnak karakterlerini temizler
     GROQ_API_KEY = (os.environ.get("GROQ_API_KEY") or "").strip().strip("\"'").strip()
     # Groq bir modeli kaldırırsa koda dokunmadan Render'dan değiştirilebilir
-    GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+    GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
     AI_PROVIDER = os.environ.get("AI_PROVIDER", "groq")
 
     # Hangi sitelerin API'ye istek atabileceği (Wix sitesi dahil)

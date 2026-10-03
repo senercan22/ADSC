@@ -16,7 +16,7 @@ class AIServiceError(Exception):
 class AIService:
     def __init__(self):
         self.api_key = Config.GROQ_API_KEY
-        self.model = "llama-3.1-8b-instant"
+        self.model = Config.GROQ_MODEL
         self.url = "https://api.groq.com/openai/v1/chat/completions"
 
     def _sistem_talimati(self):

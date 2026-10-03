@@ -5,7 +5,7 @@ Burada SQL veya yapay zekâ kodu YOKTUR; sadece içe aktarılan fonksiyonlar ça
 """
 import re
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, current_app, jsonify, render_template, request
 
 from app.auth import bilgiler_dogru_mu, giris_gerekli, token_uret
 from app.database import lead_ekle, tum_leadler
@@ -57,7 +57,9 @@ def sohbet():
     try:
         cevap = ai_service.yanit_uret(mesaj, gecmis)
         return jsonify({"basari": True, "cevap": cevap}), 200
-    except AIServiceError:
+    except AIServiceError as e:
+        # Asıl hata sunucu loglarına yazılır (Render > Logs); kullanıcıya kibar mesaj gider
+        current_app.logger.error("Yapay zekâ hatası: %s", e)
         return jsonify({"basari": False, "hata": "Asistan şu an yanıt veremiyor, lütfen biraz sonra tekrar deneyin."}), 503
 
 

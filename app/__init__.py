@@ -1,11 +1,10 @@
 from flask import Flask
-from flask_cors import CORS  # 1. Bu satırı en üste ekle
+from flask_cors import CORS
 
-def create_app():
+def create_app(config_name="default"): # Tek değiştirdiğimiz yer burası
     app = Flask(__name__)
-    
-    CORS(app) # 2. Bu satırı app tanımlandıktan hemen sonra ekle
-    
-    # ... Veritabanı ve config ayarların burada devam eder ...
-    
+
+    CORS(app)
+
+    # ... geri kalan kodların ...
     return app
